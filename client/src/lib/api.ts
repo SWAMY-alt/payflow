@@ -11,17 +11,28 @@ import type {
   Payment,
   RecordPaymentInput,
   User,
-} from '../../../shared/types';
+} from '../shared/types';
 
-const BASE_URL = '/api';
+const DEFAULT_PROD_BACKEND = 'https://payflow-gamma-green.vercel.app';
+const API_HOST = (
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') ? DEFAULT_PROD_BACKEND : '')
+).replace(/\/$/, '');
+const BASE_URL = `${API_HOST}/api`;
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const storedUserId = typeof window !== 'undefined' ? localStorage.getItem('payflow_user_id') : null;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  if (storedUserId && !headers['x-user-id']) {
+    headers['x-user-id'] = storedUserId;
+  }
+
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
     credentials: 'include',
   });
 
@@ -47,17 +58,36 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   // Auth
   auth: {
-    register: (data: { email: string; password: string; fullName: string }) =>
-      request<{ user: User; hasBusiness: boolean }>('/auth/register', {
+    register: async (data: { email: string; password: string; fullName: string }) => {
+      const res = await request<{ user: User; hasBusiness: boolean }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
-      }),
-    login: (data: { email: string; password: string }) =>
-      request<{ user: User; business: Business | null; hasBusiness: boolean }>('/auth/login', {
+      });
+      if (res.user?.id && typeof window !== 'undefined') {
+        localStorage.setItem('payflow_user_id', res.user.id);
+      }
+      return res;
+    },
+    login: async (data: { email: string; password: string }) => {
+      const res = await request<{ user: User; business: Business | null; hasBusiness: boolean }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
-      }),
-    logout: () => request<{ success: boolean }>('/auth/logout', { method: 'POST' }),
+      });
+      if (res.user?.id && typeof window !== 'undefined') {
+        localStorage.setItem('payflow_user_id', res.user.id);
+      }
+      return res;
+    },
+    logout: async () => {
+      try {
+        await request<{ success: boolean }>('/auth/logout', { method: 'POST' });
+      } finally {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('payflow_user_id');
+        }
+      }
+      return { success: true };
+    },
     me: () => request<{ user: User; business: Business | null; hasBusiness: boolean }>('/auth/me'),
   },
 
@@ -166,9 +196,14 @@ export const api = {
 
   // Demo Seeding
   demo: {
-    seed: () =>
-      request<{ success: boolean; message: string; user: User; business: Business }>('/demo/seed', {
+    seed: async () => {
+      const res = await request<{ success: boolean; message: string; user: User; business: Business }>('/demo/seed', {
         method: 'POST',
-      }),
+      });
+      if (res.user?.id && typeof window !== 'undefined') {
+        localStorage.setItem('payflow_user_id', res.user.id);
+      }
+      return res;
+    },
   },
 };

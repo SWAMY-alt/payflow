@@ -2,6 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { initDatabase, getDb } from './db';
 import { setupCronScheduler } from './jobs';
@@ -21,25 +22,43 @@ dotenv.config({ path: path.resolve(__dirname, '.env') }); // also loads server/.
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust Vercel / reverse proxy for secure HTTPS cookies
+app.set('trust proxy', 1);
+
+const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+
 // Security & Parsing Middleware
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:5173',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
+  'http://127.0.0.1:5173',
   process.env.APP_BASE_URL,
-].filter(Boolean);
+].filter(Boolean) as string[];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps, curl, server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      
+      // Allow any vercel deployment preview / production domain
+      if (origin.endsWith('.vercel.app')) {
+        return callback(null, origin);
       }
-      return callback(null, true); // Permissive in local dev
+
+      if (allowedOrigins.some((allowed) => origin.startsWith(allowed))) {
+        return callback(null, origin);
+      }
+
+      // Permissive fallback so frontend can always communicate with API
+      return callback(null, origin);
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-user-id'],
   })
 );
 app.use(express.json());
@@ -51,11 +70,12 @@ app.use(
     secret: process.env.SESSION_SECRET || 'payflow-super-secure-session-key-2026',
     resave: false,
     saveUninitialized: false,
+    proxy: true,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax',
+      sameSite: isProduction ? 'none' : 'lax', // 'none' required for cross-domain Vercel deployments
     },
   })
 );
@@ -329,19 +349,46 @@ app.post('/api/demo/seed', async (req, res) => {
   }
 });
 
-// Production client serving
-if (process.env.NODE_ENV === 'production') {
-  const clientDist = path.resolve(__dirname, '../client/dist');
-  app.use(express.static(clientDist));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(clientDist, 'index.html'));
-  });
-}
-
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'PayFlow API', time: new Date().toISOString() });
 });
+
+// Root route for backend API status and documentation
+app.get('/', (req, res) => {
+  const clientDistIndex = path.resolve(__dirname, '../client/dist/index.html');
+  if (fs.existsSync(clientDistIndex)) {
+    return res.sendFile(clientDistIndex);
+  }
+  return res.json({
+    status: 'ok',
+    service: 'PayFlow Backend API',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      business: '/api/business',
+      clients: '/api/clients',
+      invoices: '/api/invoices',
+      recurring: '/api/recurring',
+      dashboard: '/api/dashboard/summary',
+      demoSeed: '/api/demo/seed',
+    },
+    version: '1.0.0',
+    documentation: 'https://github.com/SWAMY-alt/payflow',
+  });
+});
+
+// Production client serving if built
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.resolve(__dirname, '../client/dist');
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api/')) return next();
+      res.sendFile(path.resolve(clientDist, 'index.html'));
+    });
+  }
+}
 
 // Start Server (only when not running in serverless Vercel environment)
 async function start() {
