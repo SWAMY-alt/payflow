@@ -16,7 +16,9 @@ import type {
 const DEFAULT_PROD_BACKEND = 'https://payflow-gamma-green.vercel.app';
 const API_HOST = (
   import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') ? DEFAULT_PROD_BACKEND : '')
+  (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+    ? (window.location.origin === DEFAULT_PROD_BACKEND ? '' : DEFAULT_PROD_BACKEND)
+    : '')
 ).replace(/\/$/, '');
 const BASE_URL = `${API_HOST}/api`;
 
