@@ -21,7 +21,10 @@ export async function initDatabase() {
     dbInstance = drizzlePg(pool, { schema });
   } else {
     // Embedded WASM PostgreSQL with PGlite (Zero-config, fast, full Postgres SQL/RLS support)
-    const dataDir = path.resolve(process.cwd(), 'data', 'payflow_db');
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    const dataDir = isServerless
+      ? path.resolve('/tmp', 'payflow_db')
+      : path.resolve(process.cwd(), 'data', 'payflow_db');
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }

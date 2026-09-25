@@ -343,7 +343,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'PayFlow API', time: new Date().toISOString() });
 });
 
-// Start Server
+// Start Server (only when not running in serverless Vercel environment)
 async function start() {
   try {
     await initDatabase();
@@ -358,4 +358,9 @@ async function start() {
   }
 }
 
-start();
+if (!process.env.VERCEL) {
+  start();
+}
+
+export { app, start };
+export default app;
