@@ -5,6 +5,7 @@ import pg from 'pg';
 import path from 'path';
 import fs from 'fs';
 import * as schema from './schema';
+import { seedDefaultDataIfEmpty } from './seed';
 
 let dbInstance: any = null;
 let rawClient: any = null;
@@ -36,6 +37,9 @@ export async function initDatabase() {
 
   // Ensure tables and RLS are initialized
   await runDatabaseMigrations(rawClient);
+
+  // Auto-bootstrap default demo workspace so live website works out of the box on any container
+  await seedDefaultDataIfEmpty(dbInstance);
 
   return { db: dbInstance, rawClient };
 }
