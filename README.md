@@ -2,7 +2,7 @@
 
 > Production-grade billing, partial-payment tracking, automatic late fees, recurring invoicing, and escalating follow-ups for freelancers, electricians, tutors, consultants, and small shop owners.
 
-[![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20Postgres%20%7C%20Tailwind-teal.svg)](https://github.com/SWAMY-alt/payflow-techmates)
+[![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20Postgres%20%7C%20Tailwind-teal.svg)](https://github.com/SWAMY-alt/payflow)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 
 ---
@@ -39,8 +39,8 @@ Enter an order once, and PayFlow handles everything downstream:
 
 ### 2. Clone & Install Dependencies
 ```bash
-git clone https://github.com/SWAMY-alt/payflow-techmates.git
-cd payflow-techmates
+git clone https://github.com/SWAMY-alt/payflow.git
+cd payflow
 
 # Install server dependencies
 npm install
