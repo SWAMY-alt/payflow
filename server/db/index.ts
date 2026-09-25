@@ -74,6 +74,10 @@ async function runDatabaseMigrations(client: any) {
       gst_number TEXT,
       upi_id TEXT NOT NULL,
       bank_details TEXT NOT NULL,
+      payment_method TEXT NOT NULL DEFAULT 'both',
+      account_verified BOOLEAN NOT NULL DEFAULT FALSE,
+      payment_token TEXT,
+      masked_account TEXT,
       default_late_fee_percent INTEGER NOT NULL DEFAULT 2,
       late_fee_grace_days INTEGER NOT NULL DEFAULT 3,
       notification_channel TEXT NOT NULL DEFAULT 'both',
@@ -82,6 +86,12 @@ async function runDatabaseMigrations(client: any) {
       address TEXT,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
     );
+
+    -- Ensure columns exist for existing tables
+    ALTER TABLE businesses ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'both';
+    ALTER TABLE businesses ADD COLUMN IF NOT EXISTS account_verified BOOLEAN DEFAULT FALSE;
+    ALTER TABLE businesses ADD COLUMN IF NOT EXISTS payment_token TEXT;
+    ALTER TABLE businesses ADD COLUMN IF NOT EXISTS masked_account TEXT;
 
     -- Clients Table
     CREATE TABLE IF NOT EXISTS clients (

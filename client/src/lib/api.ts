@@ -104,6 +104,28 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
+    connectBank: () =>
+      request<{
+        success: boolean;
+        order_id: string;
+        provider: string;
+        compliance: string;
+        mode: string;
+        key_id: string;
+        callback_url: string;
+      }>('/business/bank/connect', { method: 'POST' }),
+    verifyBank: (payload: { bankName?: string; last4?: string; ifsc?: string }) =>
+      request<{
+        success: boolean;
+        payment_token: string;
+        masked_account: string;
+        account_verified: boolean;
+        verified_at: string;
+        provider: string;
+      }>('/business/bank/verify', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
   },
 
   // Clients

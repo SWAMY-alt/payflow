@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, uuid, jsonb, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InvoiceLineItem } from '../../shared/types';
 
@@ -18,6 +18,10 @@ export const businesses = pgTable('businesses', {
   gstNumber: text('gst_number'),
   upiId: text('upi_id').notNull(),
   bankDetails: text('bank_details').notNull(),
+  paymentMethod: text('payment_method').default('both'),
+  accountVerified: boolean('account_verified').default(false),
+  paymentToken: text('payment_token'),
+  maskedAccount: text('masked_account'),
   defaultLateFeePercent: integer('default_late_fee_percent').default(2).notNull(),
   lateFeeGraceDays: integer('late_fee_grace_days').default(3).notNull(),
   notificationChannel: text('notification_channel').default('both').notNull(),
