@@ -1,0 +1,50 @@
+{
+  "name": "payflow",
+  "version": "1.0.0",
+  "main": "server/index.ts",
+  "scripts": {
+    "dev:server": "tsx watch server/index.ts",
+    "dev:client": "npm --prefix client run dev",
+    "dev": "concurrently \"tsx watch server/index.ts\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client run build",
+    "start": "tsx server/index.ts"
+  },
+  "keywords": [
+    "invoicing",
+    "billing",
+    "collections",
+    "late-fees",
+    "partial-payments",
+    "recurring"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "PayFlow — Smart Billing & Collections for Independent Service Providers",
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.3",
+    "drizzle-orm": "^0.45.3",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.0.10",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.23.0",
+    "uuid": "^14.0.2",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
+    "@types/node": "^26.6.2",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "@types/uuid": "^10.0.0",
+    "concurrently": "^10.0.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

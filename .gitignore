@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+client/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment Variables (Secrets)
+.env
+.env.*
+!.env.example
+client/.env
+client/.env.*
+!client/.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Database & Runtime Data
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Build Artifacts
+dist/
+client/dist/
+.output/
+
+# Logs & Temporary files
+*.log
+.system_generated/
+scratch/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
